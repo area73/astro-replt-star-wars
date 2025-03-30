@@ -1,5 +1,5 @@
 ---
-import { getPlaceholderImage, extractIdFromUrl, characterIdMap } from '../services/imageService';
+import { getCharacterImageUrl, getPlaceholderImage, extractIdFromUrl } from '../services/imageService';
 
 export interface Props {
   character: {
@@ -17,8 +17,7 @@ export interface Props {
 
 const { character } = Astro.props;
 const swapiId = extractIdFromUrl(character.url);
-const mappedId = characterIdMap[swapiId] || swapiId;
-const imageUrl = `https://raw.githubusercontent.com/akabab/starwars-api/0.2.1/assets/id/${mappedId}.jpg`;
+const imageUrl = getCharacterImageUrl(swapiId);
 const placeholderUrl = getPlaceholderImage();
 ---
 
