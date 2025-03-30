@@ -3,9 +3,22 @@ export interface Props {
   currentPage: number;
   totalPages: number;
   baseUrl: string;
+  searchQuery?: string;
 }
 
-const { currentPage, totalPages, baseUrl } = Astro.props;
+const { currentPage, totalPages, baseUrl, searchQuery = '' } = Astro.props;
+
+// Build the URL with the appropriate parameters
+const buildPageUrl = (page: number) => {
+  let url = `${baseUrl}?page=${page}`;
+  
+  // Add search query parameter if it exists
+  if (searchQuery) {
+    url += `&search=${encodeURIComponent(searchQuery)}`;
+  }
+  
+  return url;
+};
 
 // Calculate which page numbers to show
 const getPageNumbers = () => {
@@ -63,7 +76,7 @@ const pageNumbers = getPageNumbers();
   <ul>
     <li>
       <a 
-        href={`${baseUrl}?page=${Math.max(1, currentPage - 1)}`}
+        href={buildPageUrl(Math.max(1, currentPage - 1))}
         class={`pagination-link ${currentPage === 1 ? 'disabled' : ''}`}
         aria-label="Previous page"
         role="button"
@@ -80,7 +93,7 @@ const pageNumbers = getPageNumbers();
           <span class="ellipsis">...</span>
         ) : (
           <a 
-            href={`${baseUrl}?page=${pageNum}`}
+            href={buildPageUrl(pageNum as number)}
             class={`pagination-link ${currentPage === pageNum ? 'active' : ''}`}
             aria-label={`Page ${pageNum}`}
             aria-current={currentPage === pageNum ? 'page' : undefined}
@@ -93,7 +106,7 @@ const pageNumbers = getPageNumbers();
     
     <li>
       <a 
-        href={`${baseUrl}?page=${Math.min(totalPages, currentPage + 1)}`}
+        href={buildPageUrl(Math.min(totalPages, currentPage + 1))}
         class={`pagination-link ${currentPage === totalPages ? 'disabled' : ''}`}
         aria-label="Next page"
         role="button"

@@ -39,6 +39,7 @@ try {
         placeholder="Search for characters..." 
         name="search"
         id="search-input"
+        value={searchQuery}
       />
       <input type="hidden" name="page" value="1" />
       {searchQuery && (
@@ -71,6 +72,7 @@ try {
           currentPage={page} 
           totalPages={totalPages} 
           baseUrl="/characters" 
+          searchQuery={searchQuery}
         />
       </>
     )}

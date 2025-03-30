@@ -3,12 +3,14 @@ interface Props {
   placeholder?: string;
   name?: string;
   id?: string;
+  value?: string;
 }
 
 const { 
   placeholder = "Search...", 
   name = "search",
-  id = "search-input"
+  id = "search-input",
+  value = ""
 } = Astro.props;
 ---
 
@@ -21,6 +23,7 @@ const {
       name={name}
       placeholder={placeholder}
       autocomplete="off"
+      value={value}
     />
     <div class="suggestions-container" id="search-suggestions"></div>
   </div>
