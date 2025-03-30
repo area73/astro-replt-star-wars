@@ -1,8 +1,9 @@
 {
-  "name": "workspace",
+  "name": "Astro / replt : Star Wars Example",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "start": "astro dev --host 0.0.0.0 --port 5000",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
