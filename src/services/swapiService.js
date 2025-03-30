@@ -4,11 +4,19 @@ const BASE_URL = 'https://swapi.dev/api';
  * Fetch data from a SWAPI endpoint with error handling
  * @param {string} endpoint - The API endpoint
  * @param {number} page - Page number for pagination
+ * @param {Object} params - Additional query parameters
  * @returns {Promise<Object>} The API response data
  */
-async function fetchApi(endpoint, page = 1) {
+async function fetchApi(endpoint, page = 1, params = {}) {
   try {
-    const response = await fetch(`${BASE_URL}/${endpoint}/?page=${page}`);
+    let url = `${BASE_URL}/${endpoint}/?page=${page}`;
+    
+    // Add any additional query parameters
+    for (const [key, value] of Object.entries(params)) {
+      url += `&${key}=${encodeURIComponent(value)}`;
+    }
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       if (response.status === 404) {
@@ -33,10 +41,34 @@ async function fetchApi(endpoint, page = 1) {
 /**
  * Fetch Star Wars characters
  * @param {number} page - Page number for pagination
+ * @param {string} search - Optional search term for character names
  * @returns {Promise<Object>} Character data including results array and count
  */
-export async function fetchCharacters(page = 1) {
-  return fetchApi('people', page);
+export async function fetchCharacters(page = 1, search = '') {
+  const params = {};
+  if (search) {
+    params.search = search;
+  }
+  return fetchApi('people', page, params);
+}
+
+/**
+ * Search for characters by name
+ * @param {string} query - Search query for character names
+ * @returns {Promise<Array>} Filtered character data
+ */
+export async function searchCharacters(query) {
+  if (!query || query.trim() === '') {
+    return [];
+  }
+  
+  try {
+    const data = await fetchApi('people', 1, { search: query });
+    return data.results;
+  } catch (error) {
+    console.error('Error searching characters:', error);
+    return [];
+  }
 }
 
 /**

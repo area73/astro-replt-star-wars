@@ -4,10 +4,13 @@ import CharacterCard from '../components/CharacterCard.astro';
 import LoadingSpinner from '../components/LoadingSpinner.astro';
 import ErrorMessage from '../components/ErrorMessage.astro';
 import Pagination from '../components/Pagination.astro';
+import SearchBox from '../components/SearchBox.astro';
 import { fetchCharacters } from '../services/swapiService';
 
 // Get the page from the query string or default to 1
 const page = Astro.url.searchParams.get('page') ? parseInt(Astro.url.searchParams.get('page')) : 1;
+// Get search query if it exists
+const searchQuery = Astro.url.searchParams.get('search') || '';
 
 let characters = [];
 let totalPages = 1;
@@ -15,7 +18,7 @@ let error = null;
 let loading = true;
 
 try {
-  const result = await fetchCharacters(page);
+  const result = await fetchCharacters(page, searchQuery);
   characters = result.results;
   // Calculate total pages based on count and results per page (10 is default for SWAPI)
   totalPages = Math.ceil(result.count / 10);
@@ -31,13 +34,28 @@ try {
     <h1>Star Wars Characters</h1>
     <p class="description">Explore the heroes, villains, and everyone in between from the Star Wars saga.</p>
 
+    <form method="get" action="/characters" class="search-form">
+      <SearchBox 
+        placeholder="Search for characters..." 
+        name="search"
+        id="search-input"
+      />
+      <input type="hidden" name="page" value="1" />
+      {searchQuery && (
+        <div class="search-active">
+          <p>Showing results for: <span class="search-term">{searchQuery}</span></p>
+          <a href="/characters" class="clear-search">Clear search</a>
+        </div>
+      )}
+    </form>
+
     {loading && <LoadingSpinner />}
 
     {error && <ErrorMessage message={error} />}
 
     {!loading && !error && characters.length === 0 && (
       <div class="no-results">
-        <p>No characters found.</p>
+        <p>No characters found{searchQuery ? ` matching "${searchQuery}"` : ''}.</p>
       </div>
     )}
 
@@ -74,6 +92,34 @@ try {
     text-align: center;
     color: var(--color-text-muted);
     margin-bottom: 2rem;
+  }
+
+  .search-form {
+    margin-bottom: 2rem;
+  }
+
+  .search-active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .search-term {
+    font-weight: bold;
+    color: var(--color-accent);
+  }
+
+  .clear-search {
+    color: var(--color-text-muted);
+    text-decoration: underline;
+    transition: color 0.2s;
+  }
+
+  .clear-search:hover {
+    color: var(--color-accent);
   }
 
   .characters-grid {
