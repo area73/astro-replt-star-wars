@@ -1,0 +1,103 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PlanetCard from '../components/PlanetCard.astro';
+import LoadingSpinner from '../components/LoadingSpinner.astro';
+import ErrorMessage from '../components/ErrorMessage.astro';
+import Pagination from '../components/Pagination.astro';
+import { fetchPlanets } from '../services/swapiService';
+
+// Get the page from the query string or default to 1
+const page = Astro.url.searchParams.get('page') ? parseInt(Astro.url.searchParams.get('page')) : 1;
+
+let planets = [];
+let totalPages = 1;
+let error = null;
+let loading = true;
+
+try {
+  const result = await fetchPlanets(page);
+  planets = result.results;
+  // Calculate total pages based on count and results per page (10 is default for SWAPI)
+  totalPages = Math.ceil(result.count / 10);
+  loading = false;
+} catch (e) {
+  error = e.message;
+  loading = false;
+}
+---
+
+<Layout title="Planets">
+  <section class="planets-section">
+    <h1>Star Wars Planets</h1>
+    <p class="description">Discover the diverse worlds and moons of the Star Wars galaxy.</p>
+
+    {loading && <LoadingSpinner />}
+
+    {error && <ErrorMessage message={error} />}
+
+    {!loading && !error && planets.length === 0 && (
+      <div class="no-results">
+        <p>No planets found.</p>
+      </div>
+    )}
+
+    {!loading && !error && planets.length > 0 && (
+      <>
+        <div class="planets-grid">
+          {planets.map((planet) => (
+            <PlanetCard planet={planet} />
+          ))}
+        </div>
+
+        <Pagination 
+          currentPage={page} 
+          totalPages={totalPages} 
+          baseUrl="/planets" 
+        />
+      </>
+    )}
+  </section>
+</Layout>
+
+<style>
+  .planets-section {
+    padding: 1rem 0;
+  }
+
+  h1 {
+    color: var(--color-accent);
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .description {
+    text-align: center;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .planets-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 3rem;
+    background-color: var(--color-background-light);
+    border-radius: 8px;
+  }
+
+  @media (min-width: 640px) {
+    .planets-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .planets-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

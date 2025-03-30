@@ -1,0 +1,35 @@
+<div class="loading-container">
+  <div class="spinner"></div>
+  <p>Loading data from a galaxy far, far away...</p>
+</div>
+
+<style>
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 0;
+    text-align: center;
+  }
+
+  .spinner {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+    border: 5px solid var(--color-background-dark);
+    border-top: 5px solid var(--color-accent);
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  p {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+</style>

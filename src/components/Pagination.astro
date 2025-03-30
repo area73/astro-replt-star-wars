@@ -1,0 +1,183 @@
+---
+export interface Props {
+  currentPage: number;
+  totalPages: number;
+  baseUrl: string;
+}
+
+const { currentPage, totalPages, baseUrl } = Astro.props;
+
+// Calculate which page numbers to show
+const getPageNumbers = () => {
+  const pageNumbers = [];
+  const showMax = 5;
+
+  if (totalPages <= showMax) {
+    // If we have fewer pages than our max, show all
+    for (let i = 1; i <= totalPages; i++) {
+      pageNumbers.push(i);
+    }
+  } else {
+    // Always include first and last page
+    pageNumbers.push(1);
+    
+    // Calculate middle range
+    let startMiddle = Math.max(2, currentPage - 1);
+    let endMiddle = Math.min(totalPages - 1, currentPage + 1);
+    
+    // Adjust if we're close to the beginning or end
+    if (currentPage <= 3) {
+      endMiddle = 4;
+    } else if (currentPage >= totalPages - 2) {
+      startMiddle = totalPages - 3;
+    }
+    
+    // If we're not starting right after 1, add ellipsis
+    if (startMiddle > 2) {
+      pageNumbers.push('...');
+    }
+    
+    // Add middle pages
+    for (let i = startMiddle; i <= endMiddle; i++) {
+      pageNumbers.push(i);
+    }
+    
+    // If we're not ending right before the last page, add ellipsis
+    if (endMiddle < totalPages - 1) {
+      pageNumbers.push('...');
+    }
+    
+    // Add last page if not already added
+    if (totalPages > 1) {
+      pageNumbers.push(totalPages);
+    }
+  }
+  
+  return pageNumbers;
+};
+
+const pageNumbers = getPageNumbers();
+---
+
+<nav class="pagination" aria-label="Pagination Navigation">
+  <ul>
+    <li>
+      <a 
+        href={`${baseUrl}?page=${Math.max(1, currentPage - 1)}`}
+        class={`pagination-link ${currentPage === 1 ? 'disabled' : ''}`}
+        aria-label="Previous page"
+        role="button"
+        aria-disabled={currentPage === 1}
+      >
+        <span class="icon">&#8592;</span>
+        <span class="text">Previous</span>
+      </a>
+    </li>
+    
+    {pageNumbers.map((pageNum) => (
+      <li>
+        {pageNum === '...' ? (
+          <span class="ellipsis">...</span>
+        ) : (
+          <a 
+            href={`${baseUrl}?page=${pageNum}`}
+            class={`pagination-link ${currentPage === pageNum ? 'active' : ''}`}
+            aria-label={`Page ${pageNum}`}
+            aria-current={currentPage === pageNum ? 'page' : undefined}
+          >
+            {pageNum}
+          </a>
+        )}
+      </li>
+    ))}
+    
+    <li>
+      <a 
+        href={`${baseUrl}?page=${Math.min(totalPages, currentPage + 1)}`}
+        class={`pagination-link ${currentPage === totalPages ? 'disabled' : ''}`}
+        aria-label="Next page"
+        role="button"
+        aria-disabled={currentPage === totalPages}
+      >
+        <span class="text">Next</span>
+        <span class="icon">&#8594;</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<style>
+  .pagination {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+  }
+
+  .pagination ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .pagination li {
+    margin: 0.25rem;
+  }
+
+  .pagination-link {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: var(--color-background-light);
+    border-radius: 4px;
+    color: var(--color-text-main);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .pagination-link:hover:not(.disabled, .active) {
+    background-color: var(--color-accent-light);
+    color: var(--color-text-dark);
+  }
+
+  .pagination-link.active {
+    background-color: var(--color-accent);
+    color: white;
+    font-weight: bold;
+  }
+
+  .pagination-link.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .pagination-link .icon {
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  .pagination-link .text {
+    margin: 0 0.25rem;
+  }
+
+  .ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    color: var(--color-text-muted);
+  }
+
+  @media (max-width: 768px) {
+    .pagination-link .text:not(:only-child) {
+      display: none;
+    }
+    
+    .pagination-link {
+      padding: 0.5rem 0.75rem;
+    }
+  }
+</style>

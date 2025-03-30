@@ -1,0 +1,45 @@
+---
+import Navbar from '../components/Navbar.astro';
+import '../styles/global.css';
+
+export interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title} | Star Wars Explorer</title>
+  </head>
+  <body>
+    <Navbar />
+    <main>
+      <slot />
+    </main>
+    <footer>
+      <p>Star Wars Explorer | Data provided by SWAPI (swapi.dev)</p>
+    </footer>
+  </body>
+</html>
+
+<style>
+  main {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    min-height: calc(100vh - 180px);
+  }
+
+  footer {
+    text-align: center;
+    padding: 1rem;
+    background-color: var(--color-background-dark);
+    color: var(--color-text-light);
+  }
+</style>

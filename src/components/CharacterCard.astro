@@ -1,0 +1,100 @@
+---
+export interface Props {
+  character: {
+    name: string;
+    height: string;
+    mass: string;
+    hair_color: string;
+    skin_color: string;
+    eye_color: string;
+    birth_year: string;
+    gender: string;
+    url: string;
+  };
+}
+
+const { character } = Astro.props;
+const characterId = character.url.split('/').filter(Boolean).pop();
+---
+
+<div class="card">
+  <h3>{character.name}</h3>
+  <div class="card-content">
+    <div class="character-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+    </div>
+    <div class="info">
+      <p><span>Height:</span> {character.height !== "unknown" ? `${character.height} cm` : "Unknown"}</p>
+      <p><span>Mass:</span> {character.mass !== "unknown" ? `${character.mass} kg` : "Unknown"}</p>
+      <p><span>Hair:</span> {character.hair_color}</p>
+      <p><span>Skin:</span> {character.skin_color}</p>
+      <p><span>Eyes:</span> {character.eye_color}</p>
+      <p><span>Birth Year:</span> {character.birth_year}</p>
+      <p><span>Gender:</span> {character.gender}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .card {
+    background-color: var(--color-background-light);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .card h3 {
+    margin-top: 0;
+    color: var(--color-accent);
+    border-bottom: 2px solid var(--color-accent-light);
+    padding-bottom: 0.5rem;
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .character-icon {
+    margin-bottom: 1rem;
+    color: var(--color-accent);
+  }
+
+  .info {
+    width: 100%;
+  }
+
+  .info p {
+    margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .info span {
+    font-weight: bold;
+    color: var(--color-text-muted);
+  }
+
+  @media (min-width: 768px) {
+    .card-content {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    .character-icon {
+      margin-right: 1.5rem;
+      margin-bottom: 0;
+    }
+  }
+</style>

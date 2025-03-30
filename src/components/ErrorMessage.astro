@@ -1,0 +1,62 @@
+---
+export interface Props {
+  message: string;
+}
+
+const { message } = Astro.props;
+---
+
+<div class="error-container">
+  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle">
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+    <line x1="12" y1="9" x2="12" y2="13"></line>
+    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+  </svg>
+  <h3>Error Loading Data</h3>
+  <p>{message}</p>
+  <button class="retry-button" onclick="window.location.reload()">Try Again</button>
+</div>
+
+<style>
+  .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    background-color: var(--color-background-light);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin: 2rem 0;
+    color: var(--color-error);
+  }
+
+  svg {
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    margin: 0 0 1rem 0;
+  }
+
+  p {
+    margin: 0 0 1.5rem 0;
+    color: var(--color-text-main);
+  }
+
+  .retry-button {
+    background-color: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .retry-button:hover {
+    background-color: var(--color-accent-dark);
+  }
+</style>

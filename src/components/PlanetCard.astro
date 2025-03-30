@@ -1,0 +1,103 @@
+---
+export interface Props {
+  planet: {
+    name: string;
+    rotation_period: string;
+    orbital_period: string;
+    diameter: string;
+    climate: string;
+    gravity: string;
+    terrain: string;
+    surface_water: string;
+    population: string;
+    url: string;
+  };
+}
+
+const { planet } = Astro.props;
+const planetId = planet.url.split('/').filter(Boolean).pop();
+---
+
+<div class="card">
+  <h3>{planet.name}</h3>
+  <div class="card-content">
+    <div class="planet-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-globe">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="2" y1="12" x2="22" y2="12"></line>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+      </svg>
+    </div>
+    <div class="info">
+      <p><span>Rotation Period:</span> {planet.rotation_period !== "unknown" ? `${planet.rotation_period} hours` : "Unknown"}</p>
+      <p><span>Orbital Period:</span> {planet.orbital_period !== "unknown" ? `${planet.orbital_period} days` : "Unknown"}</p>
+      <p><span>Diameter:</span> {planet.diameter !== "unknown" ? `${planet.diameter} km` : "Unknown"}</p>
+      <p><span>Climate:</span> {planet.climate}</p>
+      <p><span>Gravity:</span> {planet.gravity}</p>
+      <p><span>Terrain:</span> {planet.terrain}</p>
+      <p><span>Surface Water:</span> {planet.surface_water !== "unknown" ? `${planet.surface_water}%` : "Unknown"}</p>
+      <p><span>Population:</span> {planet.population !== "unknown" ? Number(planet.population).toLocaleString() : "Unknown"}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .card {
+    background-color: var(--color-background-light);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .card h3 {
+    margin-top: 0;
+    color: var(--color-accent);
+    border-bottom: 2px solid var(--color-accent-light);
+    padding-bottom: 0.5rem;
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .planet-icon {
+    margin-bottom: 1rem;
+    color: var(--color-accent);
+  }
+
+  .info {
+    width: 100%;
+  }
+
+  .info p {
+    margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .info span {
+    font-weight: bold;
+    color: var(--color-text-muted);
+  }
+
+  @media (min-width: 768px) {
+    .card-content {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    .planet-icon {
+      margin-right: 1.5rem;
+      margin-bottom: 0;
+    }
+  }
+</style>

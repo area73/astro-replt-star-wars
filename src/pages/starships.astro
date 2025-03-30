@@ -1,0 +1,103 @@
+---
+import Layout from '../layouts/Layout.astro';
+import StarshipCard from '../components/StarshipCard.astro';
+import LoadingSpinner from '../components/LoadingSpinner.astro';
+import ErrorMessage from '../components/ErrorMessage.astro';
+import Pagination from '../components/Pagination.astro';
+import { fetchStarships } from '../services/swapiService';
+
+// Get the page from the query string or default to 1
+const page = Astro.url.searchParams.get('page') ? parseInt(Astro.url.searchParams.get('page')) : 1;
+
+let starships = [];
+let totalPages = 1;
+let error = null;
+let loading = true;
+
+try {
+  const result = await fetchStarships(page);
+  starships = result.results;
+  // Calculate total pages based on count and results per page (10 is default for SWAPI)
+  totalPages = Math.ceil(result.count / 10);
+  loading = false;
+} catch (e) {
+  error = e.message;
+  loading = false;
+}
+---
+
+<Layout title="Starships">
+  <section class="starships-section">
+    <h1>Star Wars Starships</h1>
+    <p class="description">Explore the iconic vessels that travel through hyperspace in the Star Wars universe.</p>
+
+    {loading && <LoadingSpinner />}
+
+    {error && <ErrorMessage message={error} />}
+
+    {!loading && !error && starships.length === 0 && (
+      <div class="no-results">
+        <p>No starships found.</p>
+      </div>
+    )}
+
+    {!loading && !error && starships.length > 0 && (
+      <>
+        <div class="starships-grid">
+          {starships.map((starship) => (
+            <StarshipCard starship={starship} />
+          ))}
+        </div>
+
+        <Pagination 
+          currentPage={page} 
+          totalPages={totalPages} 
+          baseUrl="/starships" 
+        />
+      </>
+    )}
+  </section>
+</Layout>
+
+<style>
+  .starships-section {
+    padding: 1rem 0;
+  }
+
+  h1 {
+    color: var(--color-accent);
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .description {
+    text-align: center;
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .starships-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 3rem;
+    background-color: var(--color-background-light);
+    border-radius: 8px;
+  }
+
+  @media (min-width: 640px) {
+    .starships-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .starships-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
