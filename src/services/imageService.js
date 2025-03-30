@@ -62,21 +62,70 @@ export function getCharacterImageUrl(characterId) {
 }
 
 /**
+ * Planet image mapping based on SWAPI IDs
+ * These image URLs are stable and reliable sources for Star Wars planet images
+ */
+export const planetImages = {
+  "1": "https://vignette.wikia.nocookie.net/starwars/images/b/b0/Tatooine_TPM.png", // Tatooine
+  "2": "https://vignette.wikia.nocookie.net/starwars/images/f/f6/Alderaan.jpg", // Alderaan
+  "3": "https://vignette.wikia.nocookie.net/starwars/images/1/1d/Yavin_4_SWCT.png", // Yavin IV
+  "4": "https://vignette.wikia.nocookie.net/starwars/images/8/8d/Hoth_SWCT.png", // Hoth
+  "5": "https://vignette.wikia.nocookie.net/starwars/images/1/1c/Dagobah.jpg", // Dagobah
+  "6": "https://vignette.wikia.nocookie.net/starwars/images/2/2c/Bespin_SWCT.png", // Bespin
+  "7": "https://vignette.wikia.nocookie.net/starwars/images/5/50/Endor_SWCT.png", // Endor
+  "8": "https://vignette.wikia.nocookie.net/starwars/images/f/f6/Naboo_planet.png", // Naboo
+  "9": "https://vignette.wikia.nocookie.net/starwars/images/9/9b/Coruscant_SWCT.png", // Coruscant
+  "10": "https://vignette.wikia.nocookie.net/starwars/images/7/7b/Kamino-DB.png", // Kamino
+  "11": "https://vignette.wikia.nocookie.net/starwars/images/c/c6/Geonosis_AotC.png", // Geonosis
+  "12": "https://vignette.wikia.nocookie.net/starwars/images/8/84/UtapauRotS.png", // Utapau
+  "13": "https://vignette.wikia.nocookie.net/starwars/images/a/a5/Mustafar_DB.png", // Mustafar
+  "14": "https://vignette.wikia.nocookie.net/starwars/images/c/c8/Kashyyyk-SWFB.png", // Kashyyyk
+  "15": "https://vignette.wikia.nocookie.net/starwars/images/6/6d/Polis-massa.jpg", // Polis Massa
+  "16": "https://vignette.wikia.nocookie.net/starwars/images/d/d7/Mygeeto_GH.jpg", // Mygeeto
+  "17": "https://vignette.wikia.nocookie.net/starwars/images/9/9e/Felucia-SWCT.png", // Felucia
+  "18": "https://vignette.wikia.nocookie.net/starwars/images/4/46/Cato_Neimoidia_FDNP.png", // Cato Neimoidia
+  "19": "https://vignette.wikia.nocookie.net/starwars/images/5/52/Saleucami-TD.png", // Saleucami
+  "20": "https://vignette.wikia.nocookie.net/starwars/images/1/19/Stewjon.jpg", // Stewjon
+  "21": "https://vignette.wikia.nocookie.net/starwars/images/2/20/Eriadu.jpg", // Eriadu
+  "22": "https://vignette.wikia.nocookie.net/starwars/images/f/f1/Corellia_SOF.png", // Corellia
+};
+
+/**
+ * Starship image mapping based on SWAPI IDs
+ * These image URLs are stable and reliable sources for Star Wars starship images
+ */
+export const starshipImages = {
+  "2": "https://vignette.wikia.nocookie.net/starwars/images/7/70/SW_Corvette.png", // CR90 corvette
+  "3": "https://vignette.wikia.nocookie.net/starwars/images/9/9d/ISD-I.png", // Star Destroyer
+  "5": "https://vignette.wikia.nocookie.net/starwars/images/a/a9/Sentinel_negvv.png", // Sentinel-class landing craft
+  "9": "https://vignette.wikia.nocookie.net/starwars/images/8/80/DSI_hdapproach.png", // Death Star
+  "10": "https://vignette.wikia.nocookie.net/starwars/images/5/5e/Millennium_Falcon_Fathead_TROS.png", // Millennium Falcon
+  "11": "https://vignette.wikia.nocookie.net/starwars/images/6/67/Y-wing_DICE.png", // Y-wing
+  "12": "https://vignette.wikia.nocookie.net/starwars/images/1/1d/X-wing_Fathead.png", // X-wing
+  "13": "https://vignette.wikia.nocookie.net/starwars/images/1/11/TIE_Fighter_DICE.png", // TIE Advanced x1
+  "15": "https://vignette.wikia.nocookie.net/starwars/images/9/93/Executor_BF2.png", // Executor
+  "17": "https://vignette.wikia.nocookie.net/starwars/images/9/9f/Firepower.jpg", // Rebel transport
+  "21": "https://vignette.wikia.nocookie.net/starwars/images/3/30/Executor_ends.jpg", // Slave 1
+  "22": "https://vignette.wikia.nocookie.net/starwars/images/d/df/ImperialShuttle.png", // Imperial shuttle
+  "23": "https://vignette.wikia.nocookie.net/starwars/images/5/56/EF76Nebulon-B_Fathead.png", // EF76 Nebulon-B escort frigate
+};
+
+/**
  * Get planet image URL
  * @param {string} planetId - Planet ID from SWAPI
- * @returns {string} - A placeholder image URL since reliable planet images are harder to find
+ * @returns {string} - The image URL
  */
 export function getPlanetImageUrl(planetId) {
-  return `https://placehold.co/600x400/4a4e69/fff?text=Planet+${planetId}`;
+  return planetImages[planetId] || getPlaceholderImage('planet');
 }
 
 /**
  * Get starship image URL
  * @param {string} starshipId - Starship ID from SWAPI
- * @returns {string} - A placeholder image URL since reliable starship images are harder to find
+ * @returns {string} - The image URL
  */
 export function getStarshipImageUrl(starshipId) {
-  return `https://placehold.co/600x400/22223b/fff?text=Starship+${starshipId}`;
+  return starshipImages[starshipId] || getPlaceholderImage('starship');
 }
 
 /**

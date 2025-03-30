@@ -1,0 +1,313 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import LoadingSpinner from '../../components/LoadingSpinner.astro';
+import ErrorMessage from '../../components/ErrorMessage.astro';
+import { fetchResourceByUrl } from '../../services/swapiService';
+import { getStarshipImageUrl, getPlaceholderImage } from '../../services/imageService';
+
+// Tell Astro to render this page on-demand
+export const prerender = false;
+
+// Get the starship ID from the URL
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/starships');
+}
+
+let starship = null;
+let error = null;
+let loading = true;
+
+try {
+  // Fetch starship data
+  starship = await fetchResourceByUrl(`https://swapi.dev/api/starships/${id}/`);
+  loading = false;
+} catch (e) {
+  error = e.message;
+  loading = false;
+}
+
+// Get image URL
+const imageUrl = starship ? getStarshipImageUrl(id) : '';
+const placeholderUrl = getPlaceholderImage('starship');
+
+// Prepare related data
+const pilots = starship?.pilots || [];
+const films = starship?.films || [];
+---
+
+<Layout title={starship ? `${starship.name} | Star Wars Starships` : 'Starship Details'}>
+  <div class="starship-detail">
+    <a href="/starships" class="back-link">
+      <span class="back-icon">←</span> Back to Starships
+    </a>
+    
+    {loading && <LoadingSpinner />}
+    
+    {error && <ErrorMessage message={error} />}
+    
+    {!loading && !error && starship && (
+      <div class="starship-container">
+        <div class="starship-header">
+          <h1>{starship.name}</h1>
+        </div>
+        
+        <div class="starship-content">
+          <div class="starship-image">
+            <img 
+              src={imageUrl} 
+              alt={`Image of ${starship.name}`}
+              onerror={`this.onerror=null; this.src='${placeholderUrl}'`}
+            />
+          </div>
+          
+          <div class="starship-info">
+            <h2>Specifications</h2>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Model:</span>
+                <span class="value">{starship.model}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Manufacturer:</span>
+                <span class="value">{starship.manufacturer}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Class:</span>
+                <span class="value">{starship.starship_class}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Cost:</span>
+                <span class="value">{starship.cost_in_credits !== "unknown" ? `${Number(starship.cost_in_credits).toLocaleString()} credits` : "Unknown"}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Length:</span>
+                <span class="value">{starship.length !== "unknown" ? `${starship.length} m` : "Unknown"}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Max Speed:</span>
+                <span class="value">{starship.max_atmosphering_speed !== "unknown" ? `${starship.max_atmosphering_speed}` : "Unknown"}</span>
+              </div>
+            </div>
+            
+            <h2>Crew & Capacity</h2>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Crew:</span>
+                <span class="value">{starship.crew}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Passengers:</span>
+                <span class="value">{starship.passengers}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Cargo Capacity:</span>
+                <span class="value">{starship.cargo_capacity !== "unknown" ? `${Number(starship.cargo_capacity).toLocaleString()} kg` : "Unknown"}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Consumables:</span>
+                <span class="value">{starship.consumables}</span>
+              </div>
+            </div>
+            
+            <h2>Performance</h2>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Hyperdrive Rating:</span>
+                <span class="value">{starship.hyperdrive_rating}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">MGLT:</span>
+                <span class="value">{starship.MGLT}</span>
+              </div>
+            </div>
+            
+            {pilots.length > 0 && (
+              <>
+                <h2>Known Pilots</h2>
+                <ul class="pilots-list">
+                  {pilots.map((pilot) => {
+                    const pilotId = pilot.split('/').filter(Boolean).pop();
+                    return (
+                      <li>
+                        <a href={`/character/${pilotId}`} class="link">Pilot {pilotId}</a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+            
+            {films.length > 0 && (
+              <>
+                <h2>Appearances</h2>
+                <ul class="films-list">
+                  {films.map((film) => {
+                    const filmId = film.split('/').filter(Boolean).pop();
+                    return (
+                      <li>
+                        Film {filmId}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+</Layout>
+
+<style>
+  .starship-detail {
+    padding: 1rem 0;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--color-background-light);
+    border-radius: 4px;
+    color: var(--color-text-main);
+    text-decoration: none;
+    margin-bottom: 2rem;
+    transition: all 0.2s ease;
+  }
+  
+  .back-link:hover {
+    background-color: var(--color-accent-light);
+  }
+  
+  .back-icon {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+  }
+  
+  .starship-header {
+    margin-bottom: 2rem;
+  }
+  
+  .starship-header h1 {
+    color: var(--color-accent);
+    text-align: center;
+    margin: 0;
+    font-size: 2rem;
+  }
+  
+  .starship-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    background-color: var(--color-background-light);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .starship-image {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  .starship-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 3px solid var(--color-accent-light);
+    aspect-ratio: 16/9;
+    object-fit: cover;
+  }
+  
+  .starship-info h2 {
+    color: var(--color-accent);
+    border-bottom: 2px solid var(--color-accent-light);
+    padding-bottom: 0.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .starship-info h2:first-of-type {
+    margin-top: 0;
+  }
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+  
+  .label {
+    font-weight: bold;
+    color: var(--color-text-muted);
+  }
+  
+  .link {
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  .link:hover {
+    text-decoration: underline;
+  }
+  
+  .pilots-list,
+  .films-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .pilots-list li,
+  .films-list li {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+  
+  @media (min-width: 768px) {
+    .starship-content {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+    
+    .starship-image {
+      flex: 0 0 300px;
+      margin: 0;
+    }
+    
+    .starship-info {
+      flex: 1;
+      padding-left: 2rem;
+    }
+    
+    .info-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

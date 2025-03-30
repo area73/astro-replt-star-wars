@@ -1,4 +1,6 @@
 ---
+import { getStarshipImageUrl, getPlaceholderImage } from '../services/imageService';
+
 export interface Props {
   starship: {
     name: string;
@@ -20,34 +22,45 @@ export interface Props {
 
 const { starship } = Astro.props;
 const starshipId = starship.url.split('/').filter(Boolean).pop();
+const imageUrl = getStarshipImageUrl(starshipId);
+const placeholderUrl = getPlaceholderImage('starship');
 ---
 
-<div class="card">
-  <h3>{starship.name}</h3>
-  <div class="card-content">
-    <div class="starship-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 16.92v3a1.998 1.998 0 0 1-2.18 2 19.794 19.794 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16.001 16.001 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.908.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z"></path>
-      </svg>
+<a href={`/starship/${starshipId}`} class="card-link">
+  <div class="card">
+    <h3>{starship.name}</h3>
+    <div class="card-content">
+      <div class="starship-image">
+        <img 
+          src={imageUrl} 
+          alt={`Image of ${starship.name}`}
+          onerror={`this.onerror=null; this.src='${placeholderUrl}'`}
+        />
+      </div>
+      <div class="info">
+        <p><span>Model:</span> {starship.model}</p>
+        <p><span>Manufacturer:</span> {starship.manufacturer}</p>
+        <p><span>Cost:</span> {starship.cost_in_credits !== "unknown" ? `${Number(starship.cost_in_credits).toLocaleString()} credits` : "Unknown"}</p>
+        <p><span>Length:</span> {starship.length !== "unknown" ? `${starship.length} m` : "Unknown"}</p>
+        <p><span>Crew/Passengers:</span> {starship.crew} / {starship.passengers}</p>
+        <p><span>Class:</span> {starship.starship_class}</p>
+        <p><span>Hyperdrive Rating:</span> {starship.hyperdrive_rating}</p>
+      </div>
     </div>
-    <div class="info">
-      <p><span>Model:</span> {starship.model}</p>
-      <p><span>Manufacturer:</span> {starship.manufacturer}</p>
-      <p><span>Cost:</span> {starship.cost_in_credits !== "unknown" ? `${Number(starship.cost_in_credits).toLocaleString()} credits` : "Unknown"}</p>
-      <p><span>Length:</span> {starship.length !== "unknown" ? `${starship.length} m` : "Unknown"}</p>
-      <p><span>Max Speed:</span> {starship.max_atmosphering_speed}</p>
-      <p><span>Crew:</span> {starship.crew}</p>
-      <p><span>Passengers:</span> {starship.passengers}</p>
-      <p><span>Cargo Capacity:</span> {starship.cargo_capacity !== "unknown" ? `${Number(starship.cargo_capacity).toLocaleString()} kg` : "Unknown"}</p>
-      <p><span>Consumables:</span> {starship.consumables}</p>
-      <p><span>Hyperdrive Rating:</span> {starship.hyperdrive_rating}</p>
-      <p><span>MGLT:</span> {starship.MGLT}</p>
-      <p><span>Class:</span> {starship.starship_class}</p>
+    <div class="view-details">
+      <span class="view-details-text">View Details →</span>
     </div>
   </div>
-</div>
+</a>
 
 <style>
+  .card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+  }
+
   .card {
     background-color: var(--color-background-light);
     border-radius: 8px;
@@ -75,9 +88,19 @@ const starshipId = starship.url.split('/').filter(Boolean).pop();
     align-items: center;
   }
 
-  .starship-icon {
+  .starship-image {
     margin-bottom: 1rem;
-    color: var(--color-accent);
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .starship-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 2px solid var(--color-accent-light);
+    aspect-ratio: 16/9;
+    object-fit: cover;
   }
 
   .info {
@@ -96,15 +119,36 @@ const starshipId = starship.url.split('/').filter(Boolean).pop();
     color: var(--color-text-muted);
   }
 
+  .view-details {
+    margin-top: 1rem;
+    text-align: right;
+  }
+  
+  .view-details-text {
+    display: inline-block;
+    color: var(--color-accent);
+    font-weight: 500;
+    transition: transform 0.2s ease;
+  }
+  
+  .card:hover .view-details-text {
+    transform: translateX(5px);
+  }
+
   @media (min-width: 768px) {
     .card-content {
       flex-direction: row;
       align-items: flex-start;
     }
 
-    .starship-icon {
+    .starship-image {
+      flex: 0 0 150px;
       margin-right: 1.5rem;
       margin-bottom: 0;
+    }
+    
+    .info {
+      flex: 1;
     }
   }
 </style>

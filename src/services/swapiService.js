@@ -74,19 +74,67 @@ export async function searchCharacters(query) {
 /**
  * Fetch Star Wars planets
  * @param {number} page - Page number for pagination
+ * @param {string} search - Optional search term for planet names
  * @returns {Promise<Object>} Planet data including results array and count
  */
-export async function fetchPlanets(page = 1) {
-  return fetchApi('planets', page);
+export async function fetchPlanets(page = 1, search = '') {
+  const params = {};
+  if (search) {
+    params.search = search;
+  }
+  return fetchApi('planets', page, params);
+}
+
+/**
+ * Search for planets by name
+ * @param {string} query - Search query for planet names
+ * @returns {Promise<Array>} Filtered planet data
+ */
+export async function searchPlanets(query) {
+  if (!query || query.trim() === '') {
+    return [];
+  }
+  
+  try {
+    const data = await fetchApi('planets', 1, { search: query });
+    return data.results;
+  } catch (error) {
+    console.error('Error searching planets:', error);
+    return [];
+  }
 }
 
 /**
  * Fetch Star Wars starships
  * @param {number} page - Page number for pagination
+ * @param {string} search - Optional search term for starship names
  * @returns {Promise<Object>} Starship data including results array and count
  */
-export async function fetchStarships(page = 1) {
-  return fetchApi('starships', page);
+export async function fetchStarships(page = 1, search = '') {
+  const params = {};
+  if (search) {
+    params.search = search;
+  }
+  return fetchApi('starships', page, params);
+}
+
+/**
+ * Search for starships by name
+ * @param {string} query - Search query for starship names
+ * @returns {Promise<Array>} Filtered starship data
+ */
+export async function searchStarships(query) {
+  if (!query || query.trim() === '') {
+    return [];
+  }
+  
+  try {
+    const data = await fetchApi('starships', 1, { search: query });
+    return data.results;
+  } catch (error) {
+    console.error('Error searching starships:', error);
+    return [];
+  }
 }
 
 /**

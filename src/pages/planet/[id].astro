@@ -1,0 +1,285 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import LoadingSpinner from '../../components/LoadingSpinner.astro';
+import ErrorMessage from '../../components/ErrorMessage.astro';
+import { fetchResourceByUrl } from '../../services/swapiService';
+import { getPlanetImageUrl, getPlaceholderImage } from '../../services/imageService';
+
+// Tell Astro to render this page on-demand
+export const prerender = false;
+
+// Get the planet ID from the URL
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/planets');
+}
+
+let planet = null;
+let error = null;
+let loading = true;
+
+try {
+  // Fetch planet data
+  planet = await fetchResourceByUrl(`https://swapi.dev/api/planets/${id}/`);
+  loading = false;
+} catch (e) {
+  error = e.message;
+  loading = false;
+}
+
+// Get image URL
+const imageUrl = planet ? getPlanetImageUrl(id) : '';
+const placeholderUrl = getPlaceholderImage('planet');
+
+// Prepare related data
+const residents = planet?.residents || [];
+const films = planet?.films || [];
+---
+
+<Layout title={planet ? `${planet.name} | Star Wars Planets` : 'Planet Details'}>
+  <div class="planet-detail">
+    <a href="/planets" class="back-link">
+      <span class="back-icon">←</span> Back to Planets
+    </a>
+    
+    {loading && <LoadingSpinner />}
+    
+    {error && <ErrorMessage message={error} />}
+    
+    {!loading && !error && planet && (
+      <div class="planet-container">
+        <div class="planet-header">
+          <h1>{planet.name}</h1>
+        </div>
+        
+        <div class="planet-content">
+          <div class="planet-image">
+            <img 
+              src={imageUrl} 
+              alt={`Image of ${planet.name}`}
+              onerror={`this.onerror=null; this.src='${placeholderUrl}'`}
+            />
+          </div>
+          
+          <div class="planet-info">
+            <h2>Planetary Details</h2>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Rotation Period:</span>
+                <span class="value">{planet.rotation_period !== "unknown" ? `${planet.rotation_period} hours` : "Unknown"}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Orbital Period:</span>
+                <span class="value">{planet.orbital_period !== "unknown" ? `${planet.orbital_period} days` : "Unknown"}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Diameter:</span>
+                <span class="value">{planet.diameter !== "unknown" ? `${planet.diameter} km` : "Unknown"}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Climate:</span>
+                <span class="value">{planet.climate}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Gravity:</span>
+                <span class="value">{planet.gravity}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Terrain:</span>
+                <span class="value">{planet.terrain}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Surface Water:</span>
+                <span class="value">{planet.surface_water !== "unknown" ? `${planet.surface_water}%` : "Unknown"}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Population:</span>
+                <span class="value">{planet.population !== "unknown" ? Number(planet.population).toLocaleString() : "Unknown"}</span>
+              </div>
+            </div>
+            
+            {residents.length > 0 && (
+              <>
+                <h2>Notable Residents</h2>
+                <ul class="residents-list">
+                  {residents.map((resident) => {
+                    const residentId = resident.split('/').filter(Boolean).pop();
+                    return (
+                      <li>
+                        <a href={`/character/${residentId}`} class="link">Resident {residentId}</a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+            
+            {films.length > 0 && (
+              <>
+                <h2>Appearances</h2>
+                <ul class="films-list">
+                  {films.map((film) => {
+                    const filmId = film.split('/').filter(Boolean).pop();
+                    return (
+                      <li>
+                        Film {filmId}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+</Layout>
+
+<style>
+  .planet-detail {
+    padding: 1rem 0;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--color-background-light);
+    border-radius: 4px;
+    color: var(--color-text-main);
+    text-decoration: none;
+    margin-bottom: 2rem;
+    transition: all 0.2s ease;
+  }
+  
+  .back-link:hover {
+    background-color: var(--color-accent-light);
+  }
+  
+  .back-icon {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+  }
+  
+  .planet-header {
+    margin-bottom: 2rem;
+  }
+  
+  .planet-header h1 {
+    color: var(--color-accent);
+    text-align: center;
+    margin: 0;
+    font-size: 2rem;
+  }
+  
+  .planet-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    background-color: var(--color-background-light);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .planet-image {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  .planet-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 3px solid var(--color-accent-light);
+  }
+  
+  .planet-info h2 {
+    color: var(--color-accent);
+    border-bottom: 2px solid var(--color-accent-light);
+    padding-bottom: 0.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .planet-info h2:first-of-type {
+    margin-top: 0;
+  }
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+  
+  .label {
+    font-weight: bold;
+    color: var(--color-text-muted);
+  }
+  
+  .link {
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  .link:hover {
+    text-decoration: underline;
+  }
+  
+  .residents-list,
+  .films-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .residents-list li,
+  .films-list li {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+  
+  @media (min-width: 768px) {
+    .planet-content {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+    
+    .planet-image {
+      flex: 0 0 300px;
+      margin: 0;
+    }
+    
+    .planet-info {
+      flex: 1;
+      padding-left: 2rem;
+    }
+    
+    .info-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

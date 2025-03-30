@@ -4,10 +4,12 @@ import PlanetCard from '../components/PlanetCard.astro';
 import LoadingSpinner from '../components/LoadingSpinner.astro';
 import ErrorMessage from '../components/ErrorMessage.astro';
 import Pagination from '../components/Pagination.astro';
+import SearchBox from '../components/SearchBox.astro';
 import { fetchPlanets } from '../services/swapiService';
 
-// Get the page from the query string or default to 1
+// Get query parameters
 const page = Astro.url.searchParams.get('page') ? parseInt(Astro.url.searchParams.get('page')) : 1;
+const search = Astro.url.searchParams.get('search') || '';
 
 let planets = [];
 let totalPages = 1;
@@ -15,7 +17,7 @@ let error = null;
 let loading = true;
 
 try {
-  const result = await fetchPlanets(page);
+  const result = await fetchPlanets(page, search);
   planets = result.results;
   // Calculate total pages based on count and results per page (10 is default for SWAPI)
   totalPages = Math.ceil(result.count / 10);
@@ -31,13 +33,23 @@ try {
     <h1>Star Wars Planets</h1>
     <p class="description">Discover the diverse worlds and moons of the Star Wars galaxy.</p>
 
+    <form action="/planets" method="get" class="search-form">
+      <SearchBox 
+        placeholder="Search for planets..." 
+        name="search"
+        id="search-input"
+        value={search}
+      />
+      <button type="submit" class="search-button">Search</button>
+    </form>
+
     {loading && <LoadingSpinner />}
 
     {error && <ErrorMessage message={error} />}
 
     {!loading && !error && planets.length === 0 && (
       <div class="no-results">
-        <p>No planets found.</p>
+        <p>No planets found. Try another search term.</p>
       </div>
     )}
 
@@ -52,7 +64,7 @@ try {
         <Pagination 
           currentPage={page} 
           totalPages={totalPages} 
-          baseUrl="/planets" 
+          baseUrl={search ? `/planets?search=${encodeURIComponent(search)}&` : "/planets"} 
         />
       </>
     )}
@@ -75,6 +87,31 @@ try {
     color: var(--color-text-muted);
     margin-bottom: 2rem;
   }
+  
+  .search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    align-items: center;
+  }
+  
+  .search-button {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .search-button:hover {
+    background-color: var(--color-accent-dark, #0056b3);
+  }
 
   .planets-grid {
     display: grid;
@@ -93,6 +130,15 @@ try {
     .planets-grid {
       grid-template-columns: repeat(2, 1fr);
     }
+    
+    .search-form {
+      flex-direction: row;
+      justify-content: center;
+    }
+    
+    .search-button {
+      width: auto;
+    }
   }
 
   @media (min-width: 1024px) {
@@ -101,3 +147,117 @@ try {
     }
   }
 </style>
+
+<script>
+  import { searchPlanets } from '../services/swapiService.js';
+  import { extractIdFromUrl } from '../services/imageService.js';
+  
+  // Reuse the search-input ID since SearchBox component uses this ID
+  const searchInput = document.getElementById('search-input');
+  const suggestionsContainer = document.getElementById('search-suggestions');
+  
+  if (searchInput && suggestionsContainer) {
+    let debounceTimeout;
+    
+    // Handle input changes with debounce
+    searchInput.addEventListener('input', function() {
+      const query = this.value.trim();
+      
+      // Clear previous timeout
+      clearTimeout(debounceTimeout);
+      
+      // Clear suggestions if query is empty
+      if (!query) {
+        suggestionsContainer.innerHTML = '';
+        suggestionsContainer.classList.remove('show');
+        return;
+      }
+      
+      // Set a new timeout
+      debounceTimeout = setTimeout(async () => {
+        // Fetch search results
+        const results = await searchPlanets(query);
+        
+        // Clear previous suggestions
+        suggestionsContainer.innerHTML = '';
+        
+        if (results && results.length > 0) {
+          // Create and append suggestion items
+          results.forEach(planet => {
+            const planetId = extractIdFromUrl(planet.url);
+            const item = document.createElement('div');
+            item.className = 'suggestion-item';
+            item.setAttribute('data-planet-id', planetId);
+            item.innerHTML = `
+              <span class="suggestion-name">${planet.name}</span>
+              <span class="suggestion-action">View Details →</span>
+            `;
+            
+            // Handle suggestion click - go directly to planet detail page
+            item.addEventListener('click', () => {
+              // Redirect to planet detail page
+              window.location.href = `/planet/${planetId}`;
+            });
+            
+            suggestionsContainer.appendChild(item);
+          });
+          
+          suggestionsContainer.classList.add('show');
+        } else {
+          suggestionsContainer.classList.remove('show');
+        }
+      }, 300);
+    });
+    
+    // Handle keydown for keyboard navigation
+    searchInput.addEventListener('keydown', (event) => {
+      const items = suggestionsContainer.querySelectorAll('.suggestion-item');
+      
+      if (!items.length) return;
+      
+      const activeItem = suggestionsContainer.querySelector('.suggestion-item.active');
+      const isVisible = suggestionsContainer.classList.contains('show');
+      
+      // Handle arrow down
+      if (event.key === 'ArrowDown' && isVisible) {
+        event.preventDefault();
+        
+        if (!activeItem) {
+          items[0].classList.add('active');
+        } else {
+          const nextItem = activeItem.nextElementSibling;
+          if (nextItem) {
+            activeItem.classList.remove('active');
+            nextItem.classList.add('active');
+          }
+        }
+      }
+      
+      // Handle arrow up
+      if (event.key === 'ArrowUp' && isVisible) {
+        event.preventDefault();
+        
+        if (activeItem) {
+          const prevItem = activeItem.previousElementSibling;
+          activeItem.classList.remove('active');
+          
+          if (prevItem) {
+            prevItem.classList.add('active');
+          }
+        }
+      }
+      
+      // Handle Enter key
+      if (event.key === 'Enter' && isVisible && activeItem) {
+        event.preventDefault();
+        
+        const planetId = activeItem.getAttribute('data-planet-id');
+        if (planetId) {
+          window.location.href = `/planet/${planetId}`;
+        }
+        
+        suggestionsContainer.classList.remove('show');
+      }
+    });
+  }
+</script>
