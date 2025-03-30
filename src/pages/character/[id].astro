@@ -1,0 +1,311 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import LoadingSpinner from '../../components/LoadingSpinner.astro';
+import ErrorMessage from '../../components/ErrorMessage.astro';
+import { fetchResourceByUrl } from '../../services/swapiService';
+import { getCharacterImageUrl, getPlaceholderImage } from '../../services/imageService';
+
+// Tell Astro to render this page on-demand
+export const prerender = false;
+
+// Get the character ID from the URL
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/characters');
+}
+
+let character = null;
+let error = null;
+let loading = true;
+
+try {
+  // Fetch character data
+  character = await fetchResourceByUrl(`https://swapi.dev/api/people/${id}/`);
+  loading = false;
+} catch (e) {
+  error = e.message;
+  loading = false;
+}
+
+// Get image URL
+const imageUrl = character ? getCharacterImageUrl(id) : '';
+const placeholderUrl = getPlaceholderImage('character');
+
+// Extract homeworld ID for link
+const homeworldId = character?.homeworld ? character.homeworld.split('/').filter(Boolean).pop() : null;
+
+// Prepare films data
+const films = character?.films || [];
+---
+
+<Layout title={character ? `${character.name} | Star Wars Characters` : 'Character Details'}>
+  <div class="character-detail">
+    <a href="/characters" class="back-link">
+      <span class="back-icon">←</span> Back to Characters
+    </a>
+    
+    {loading && <LoadingSpinner />}
+    
+    {error && <ErrorMessage message={error} />}
+    
+    {!loading && !error && character && (
+      <div class="character-container">
+        <div class="character-header">
+          <h1>{character.name}</h1>
+        </div>
+        
+        <div class="character-content">
+          <div class="character-image">
+            <img 
+              src={imageUrl} 
+              alt={`Image of ${character.name}`}
+              onerror={`this.onerror=null; this.src='${placeholderUrl}'`}
+            />
+          </div>
+          
+          <div class="character-info">
+            <h2>Profile</h2>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">Height:</span>
+                <span class="value">{character.height !== "unknown" ? `${character.height} cm` : "Unknown"}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Mass:</span>
+                <span class="value">{character.mass !== "unknown" ? `${character.mass} kg` : "Unknown"}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Hair Color:</span>
+                <span class="value">{character.hair_color}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Skin Color:</span>
+                <span class="value">{character.skin_color}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Eye Color:</span>
+                <span class="value">{character.eye_color}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Birth Year:</span>
+                <span class="value">{character.birth_year}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Gender:</span>
+                <span class="value">{character.gender}</span>
+              </div>
+              
+              <div class="info-item">
+                <span class="label">Homeworld:</span>
+                <span class="value">
+                  {homeworldId ? (
+                    <a href={`/planet/${homeworldId}`} class="link">View Homeworld</a>
+                  ) : (
+                    "Unknown"
+                  )}
+                </span>
+              </div>
+            </div>
+            
+            <h2>Appearances</h2>
+            {films.length > 0 ? (
+              <ul class="films-list">
+                {films.map((film) => {
+                  const filmId = film.split('/').filter(Boolean).pop();
+                  return (
+                    <li>
+                      Film {filmId}
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p>No film appearances recorded.</p>
+            )}
+            
+            {character.starships && character.starships.length > 0 && (
+              <>
+                <h2>Starships</h2>
+                <ul class="starships-list">
+                  {character.starships.map((starship) => {
+                    const starshipId = starship.split('/').filter(Boolean).pop();
+                    return (
+                      <li>
+                        <a href={`/starship/${starshipId}`} class="link">Starship {starshipId}</a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+
+            {character.vehicles && character.vehicles.length > 0 && (
+              <>
+                <h2>Vehicles</h2>
+                <ul class="vehicles-list">
+                  {character.vehicles.map((vehicle) => {
+                    const vehicleId = vehicle.split('/').filter(Boolean).pop();
+                    return (
+                      <li>Vehicle {vehicleId}</li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+</Layout>
+
+<style>
+  .character-detail {
+    padding: 1rem 0;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--color-background-light);
+    border-radius: 4px;
+    color: var(--color-text-main);
+    text-decoration: none;
+    margin-bottom: 2rem;
+    transition: all 0.2s ease;
+  }
+  
+  .back-link:hover {
+    background-color: var(--color-accent-light);
+  }
+  
+  .back-icon {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+  }
+  
+  .character-header {
+    margin-bottom: 2rem;
+  }
+  
+  .character-header h1 {
+    color: var(--color-accent);
+    text-align: center;
+    margin: 0;
+    font-size: 2rem;
+  }
+  
+  .character-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    background-color: var(--color-background-light);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .character-image {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  
+  .character-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 3px solid var(--color-accent-light);
+    aspect-ratio: 1/1;
+    object-fit: cover;
+  }
+  
+  .character-info h2 {
+    color: var(--color-accent);
+    border-bottom: 2px solid var(--color-accent-light);
+    padding-bottom: 0.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .character-info h2:first-of-type {
+    margin-top: 0;
+  }
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+  
+  .label {
+    font-weight: bold;
+    color: var(--color-text-muted);
+  }
+  
+  .link {
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  .link:hover {
+    text-decoration: underline;
+  }
+  
+  .films-list,
+  .starships-list,
+  .vehicles-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .films-list li,
+  .starships-list li,
+  .vehicles-list li {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+  
+  @media (min-width: 768px) {
+    .character-content {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+    
+    .character-image {
+      flex: 0 0 250px;
+      margin: 0;
+    }
+    
+    .character-info {
+      flex: 1;
+      padding-left: 2rem;
+    }
+    
+    .info-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

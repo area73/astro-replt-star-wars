@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@astrojs/node": "^9.1.3",
     "astro": "^5.5.5"
   }
 }

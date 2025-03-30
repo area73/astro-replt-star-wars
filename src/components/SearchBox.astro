@@ -94,6 +94,7 @@ const {
 
 <script>
   import { searchCharacters } from '../services/swapiService.js';
+  import { extractIdFromUrl } from '../services/imageService.js';
   
   const searchInput = document.getElementById('search-input');
   const suggestionsContainer = document.getElementById('search-suggestions');
@@ -126,24 +127,19 @@ const {
         if (results && results.length > 0) {
           // Create and append suggestion items
           results.forEach(character => {
+            const characterId = extractIdFromUrl(character.url);
             const item = document.createElement('div');
             item.className = 'suggestion-item';
-            item.textContent = character.name;
+            item.setAttribute('data-character-id', characterId);
+            item.innerHTML = `
+              <span class="suggestion-name">${character.name}</span>
+              <span class="suggestion-action">View Details →</span>
+            `;
             
-            // Handle suggestion click
+            // Handle suggestion click - go directly to character detail page
             item.addEventListener('click', () => {
-              searchInput.value = character.name;
-              suggestionsContainer.innerHTML = '';
-              suggestionsContainer.classList.remove('show');
-              
-              // Submit the form
-              const form = searchInput.closest('form');
-              if (form) {
-                form.submit();
-              } else {
-                // Fallback - redirect with search query
-                window.location.href = `/characters?search=${encodeURIComponent(character.name)}`;
-              }
+              // Redirect to character detail page
+              window.location.href = `/character/${characterId}`;
             });
             
             suggestionsContainer.appendChild(item);
@@ -205,17 +201,18 @@ const {
       // Handle Enter key
       if (event.key === 'Enter' && isVisible && activeItem) {
         event.preventDefault();
-        searchInput.value = activeItem.textContent;
-        suggestionsContainer.classList.remove('show');
         
-        // Submit the form
-        const form = searchInput.closest('form');
-        if (form) {
-          form.submit();
-        } else {
-          // Fallback - redirect with search query
-          window.location.href = `/characters?search=${encodeURIComponent(searchInput.value)}`;
+        // Get the character ID from the data attribute
+        const characterNameElement = activeItem.querySelector('.suggestion-name');
+        if (characterNameElement) {
+          const characterId = activeItem.getAttribute('data-character-id');
+          if (characterId) {
+            // Redirect to character detail page
+            window.location.href = `/character/${characterId}`;
+          }
         }
+        
+        suggestionsContainer.classList.remove('show');
       }
       
       // Handle Escape key
@@ -231,10 +228,35 @@ const {
     padding: 10px 16px;
     cursor: pointer;
     transition: background-color 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .suggestion-item:last-child {
+    border-bottom: none;
   }
   
   .suggestion-item:hover,
   .suggestion-item.active {
     background-color: var(--color-accent-light);
+  }
+  
+  .suggestion-name {
+    font-weight: 500;
+  }
+  
+  .suggestion-action {
+    font-size: 0.85rem;
+    color: var(--color-accent);
+    opacity: 0.8;
+    transition: transform 0.2s ease;
+  }
+  
+  .suggestion-item:hover .suggestion-action,
+  .suggestion-item.active .suggestion-action {
+    opacity: 1;
+    transform: translateX(3px);
   }
 </style>
